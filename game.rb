@@ -1,6 +1,6 @@
 class Game
-  attr_accessor :name, :player1, :player2, :code, :compare_array, :color_options, :game_won
-  @@code = []
+  attr_accessor :name, :player1, :player2, :compare_array, :color_options, :game_won
+
   def initialize
     @name = "Mastermind"
     @player1 = Codemaker.new
@@ -17,13 +17,13 @@ class Game
 
   private
 
-  def computer?(player1, player2)
+  def computer_role(player1, player2)
     if player1.name == "Computer" && player1.role == "Codemaker"
-      player1.pick_random_code(@color_options, @@code)
-      puts "#{code}"
+      player1.pick_random_code(@color_options, player1.code)
+      puts "#{player1.code}"
     elsif player2.name == "Computer" && player2.role == "Codebreaker"
       player1.make_code
-      puts "#{code}"
+      puts "#{player1.code}"
     end
   end
 
@@ -34,13 +34,13 @@ class Game
   def play_round
       player2.make_guess
       puts "#{player2.guess}"
-      check_code(code, player2.guess, color_options)
+      check_code(player1.code, player2.guess, color_options)
       check_win
       clear_guesses
   end
 
   def play_game
-    computer?(@player1, @player2)
+    computer_role(@player1, @player2)
     loop do 
       play_round
       if game_won
@@ -65,10 +65,20 @@ class Game
       @color_options.each do |key, value|
         @color_options[key] = 0
       end
+      swap_roles
       play_game
     else
       puts "Thanks for playing!"
       exit
+    end
+  end
+
+  def swap_roles
+    puts "Would you like to swap roles? [Y/N]"
+    swap = gets.chomp
+    if swap == "Y"
+      @player1 = Codemaker.new
+      @player2 = Codebreaker.new
     end
   end
 
