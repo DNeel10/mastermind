@@ -1,17 +1,15 @@
-
-color_options = {1 => "blue", 2 => "red", 3 => "green", 4 => "yellow", 5 => "orange", 6 => "purple"}
-code = []
-
 class Game
-  attr_accessor :name, :player1, :player2, :code
+  attr_accessor :name, :player1, :player2, :code, :compare_array, :color_options
 
   def initialize
     @name = "Mastermind"
     @player1 = Codemaker.new
     @player2 = Codebreaker.new
 
-    @color_options = {1 => "blue", 2 => "red", 3 => "green", 4 => "yellow", 5 => "orange", 6 => "purple"}
+    @color_options = {"blue" => 0, "red" => 0, "green" => 0, "yellow" => 0, "orange" => 0, "purple" => 0}
     @code = []
+
+    @compare_array = []
 
     computer?(@player1)
     play_round
@@ -33,10 +31,29 @@ class Game
   def play_round
     player2.make_guess
     puts "#{player2.guess}"
-    if player2.guess == code
-      puts "YOU GUESSED CORRECT!"
-    end
+    check_code(code, player2.guess, color_options)
+    # if player2.guess == code
+    #   puts "YOU GUESSED CORRECT!"
+    # end
   end
+
+  def check_code(code, guess, hash)
+    # check if each position in guess matches the code
+    guess.each_with_index do |v, i|
+      if guess[i] == code[i]
+        compare_array.push("Black")
+        # decrement the value in the colors hash by 1 (can this be a function since i'm using it twice?)
+        hash[guess[i]] -= 1
+      elsif code.include?(guess[i])
+        compare_array.push("White")
+        # decrement the value in the colors hash by 1 (can this be a function since i'm using it twice?)
+      else
+        compare_array.push("-")
+      end
+    end
+    puts "#{compare_array}"
+  end
+
 end
 
 
@@ -63,7 +80,14 @@ class Codemaker < Player
   end
   
   def pick_random_code(hash, array)
-    4.times {array.push(hash.values.sample)}
+    4.times do |i|
+      array.push(hash.keys.sample)
+      # increment the value for each color in the hash by 1 if it was selected.
+      hash[array[i]] += 1
+      puts "#{hash[array[i]]}"
+    end
+
+  
   end
 
   def get_codemaker_name
@@ -79,6 +103,7 @@ end
 
 class Codebreaker < Player
   attr_accessor :guess
+
   def initialize
     @name = get_codebreaker_name
     @role = "Codebreaker"
@@ -92,7 +117,7 @@ class Codebreaker < Player
 
   def make_guess
     4.times do |i|
-      puts "gess the position #{i} color: " 
+      puts "Guess the position #{i} color: " 
       guess.push(gets.chomp)
     end
   end
