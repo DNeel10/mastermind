@@ -11,8 +11,7 @@ class Game
 
     @compare_array = []
 
-    computer?(@player1)
-    play_round
+    play_game
   end
 
   private
@@ -29,43 +28,63 @@ class Game
   end
 
   def play_round
-    player2.make_guess
-    puts "#{player2.guess}"
-    check_code(code, player2.guess, color_options)
+      player2.make_guess
+      puts "#{player2.guess}"
+      check_code(code, player2.guess, color_options)
+      check_win
+      clear_guesses
   end
 
   def play_game
-    unless game_won
-      loop do
-        play_round
+    computer?(@player1)
+    loop do 
+      play_round
+      if game_won
+        play_again
       end
     end
   end
 
   def check_win
-    if compare_array.all?("Black")
+    if @compare_array == ["Black", "Black", "Black", "Black"]
+      @game_won = true
       puts "You cracked the code!"
-      game_won = true
     end
   end
 
+  def play_again
+    puts "Would you like to play again? [Y/N]"
+    replay = gets.chomp
+    if replay == "Y"
+      @code = []
+      play_game
+    else
+      puts "Thanks for playing!"
+      exit
+    end
+  end
+
+  def clear_guesses
+    player2.guess = []
+    @compare_array = []
+  end
 
   def check_code(code, guess, hash)
     # check if each position in guess matches the code
     guess.each_with_index do |v, i|
       if guess[i] == code[i]
         compare_array.push("Black")
-        # decrement the value in the colors hash by 1 (can this be a function since i'm using it twice?)
+        # decrement the value in the colors hash by 1
         hash[guess[i]] -= 1
-      elsif code.include?(guess[i]) && hash[guess[i] != 0]
+      elsif code.include?(guess[i]) && hash[guess[i]] != 0
         compare_array.push("White")
-        # decrement the value in the colors hash by 1 (can this be a function since i'm using it twice?)
+        # decrement the value in the colors hash by 1
+        hash[guess[i]] -= 1
       else
         compare_array.push("-")
       end
     end
     puts "#{compare_array}"
-    check_win
   end
 
 end
