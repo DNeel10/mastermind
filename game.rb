@@ -1,11 +1,11 @@
 class Game
-  attr_accessor :name, :player1, :player2, :code, :compare_array, :color_options
+  attr_accessor :name, :player1, :player2, :code, :compare_array, :color_options, :game_won
 
   def initialize
     @name = "Mastermind"
     @player1 = Codemaker.new
     @player2 = Codebreaker.new
-
+    @game_won = false
     @color_options = {"blue" => 0, "red" => 0, "green" => 0, "yellow" => 0, "orange" => 0, "purple" => 0}
     @code = []
 
@@ -32,10 +32,23 @@ class Game
     player2.make_guess
     puts "#{player2.guess}"
     check_code(code, player2.guess, color_options)
-    # if player2.guess == code
-    #   puts "YOU GUESSED CORRECT!"
-    # end
   end
+
+  def play_game
+    unless game_won
+      loop do
+        play_round
+      end
+    end
+  end
+
+  def check_win
+    if compare_array.all?("Black")
+      puts "You cracked the code!"
+      game_won = true
+    end
+  end
+
 
   def check_code(code, guess, hash)
     # check if each position in guess matches the code
@@ -44,7 +57,7 @@ class Game
         compare_array.push("Black")
         # decrement the value in the colors hash by 1 (can this be a function since i'm using it twice?)
         hash[guess[i]] -= 1
-      elsif code.include?(guess[i])
+      elsif code.include?(guess[i]) && hash[guess[i] != 0]
         compare_array.push("White")
         # decrement the value in the colors hash by 1 (can this be a function since i'm using it twice?)
       else
@@ -52,6 +65,7 @@ class Game
       end
     end
     puts "#{compare_array}"
+    check_win
   end
 
 end
@@ -96,7 +110,7 @@ class Codemaker < Player
   end
 
   def make_code
-
+    # allow codemaker to make a custom code
   end
 
 end
