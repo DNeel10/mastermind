@@ -10,8 +10,6 @@ class Game
     # hash will increment/decrement as colors are selected/guessed in the game.
     @color_options = {"blue" => 0, "red" => 0, "green" => 0, "yellow" => 0, "orange" => 0, "purple" => 0}
 
-    @compare_array = []
-
     play_game
   end
 
@@ -32,8 +30,8 @@ class Game
   end
 
   def play_round
-      player2.make_guess
-      puts "#{player2.guess}"
+      player2.make_guess(@color_options)
+      puts "Codebreaker Guesses: #{player2.guess}"
       check_code(player1.code, player2.guess, color_options)
       check_win
       clear_guesses
@@ -41,16 +39,20 @@ class Game
 
   def play_game
     computer_role(@player1, @player2)
-    loop do 
+    i = 0
+    while i < 12
       play_round
       if game_won
         play_again
       end
+      i += 1
+      puts "#{12-i} rounds left"
     end
+    puts "Game Over"
   end
 
   def check_win
-    if @compare_array == ["Black", "Black", "Black", "Black"]
+    if player2.compare_array == ["Black", "Black", "Black", "Black"]
       @game_won = true
       puts "You cracked the code!"
     end
@@ -66,6 +68,7 @@ class Game
         @color_options[key] = 0
       end
       swap_roles
+      @game_won = false
       play_game
     else
       puts "Thanks for playing!"
@@ -84,26 +87,26 @@ class Game
 
   def clear_guesses
     player2.guess = []
-    @compare_array = []
+    player2.compare_array = []
   end
 
   # may need to break black/white into two separate functions to ensure not overlap
   def check_code(code, guess, hash)
     # check if each position in guess matches the code
-    guess.each_with_index do |v, i|
+    code.each_with_index do |v, i|
       if guess[i] == player1.code[i]
-        compare_array.push("Black")
+        player2.compare_array.push("Black")
         # decrement the value in the colors hash by 1
         hash[guess[i]] -= 1
-      elsif code.include?(guess[i]) && hash[guess[i]] != 0
-        compare_array.push("White")
+      elsif code.include?(guess[i]) && hash[guess[i]] > 0
+        player2.compare_array.push("White")
         # decrement the value in the colors hash by 1
-        hash[guess[i]] -= 1
+        hash[code[i]] -= 1
       else
-        compare_array.push("-")
+        player2.compare_array.push("-")
       end
     end
-    puts "#{compare_array}"
+    puts "Feedback for Codebreaker: #{player2.compare_array}"
   end
 
 end
@@ -138,8 +141,8 @@ class Codemaker < Player
       array.push(hash.keys.sample)
       # increment the value for each color in the hash by 1 if it was selected.
       hash[array[i]] += 1
-      puts "#{hash[array[i]]}"
     end  
+    puts "#{hash}"
   end
 
   def get_codemaker_name
@@ -155,15 +158,20 @@ class Codemaker < Player
     end
   end
 
+  def give_feedback
+  end
+
 end
 
 class Codebreaker < Player
-  attr_accessor :guess, :role
+  attr_accessor :guess, :role, :compare_array, :computer_correct_guesses
 
   def initialize
     @name = get_codebreaker_name
     @role = "Codebreaker"
     @guess = []
+    @compare_array = []
+    @computer_correct_guesses = {}
   end
 
   def get_codebreaker_name
@@ -171,13 +179,22 @@ class Codebreaker < Player
     gets.chomp
   end
 
-  def make_guess
+  def make_guess(hash)
+    if self.name == "Computer"
+      computer_guess(hash)
+    else
+      4.times do |i|
+        puts "Guess the position #{i} color: " 
+        guess.push(gets.chomp)
+      end
+    end
+  end
+
+  def computer_guess(hash)
     4.times do |i|
-      puts "Guess the position #{i} color: " 
-      guess.push(gets.chomp)
+      guess.push(hash.keys.sample)
     end
   end
 end
 
 Game.new
-mm
