@@ -2,6 +2,8 @@ class Game
   attr_accessor :name, :player1, :player2, :compare_array, :color_options, :game_won
 
   def initialize
+    setup_game
+    display_rules
     @name = "Mastermind"
     @player1 = Codemaker.new
     @player2 = Codebreaker.new
@@ -9,24 +11,37 @@ class Game
 
     # hash will increment/decrement as colors are selected/guessed in the game.
     @color_options = {"blue" => 0, "red" => 0, "green" => 0, "yellow" => 0, "orange" => 0, "purple" => 0}
-
     play_game
   end
 
   private
 
   def computer_role(player1, player2)
-    if player1.name == "Computer" && player1.role == "Codemaker"
+    if player1.name == "computer" && player1.role == "Codemaker"
       player1.pick_random_code(@color_options, player1.code)
-      puts "#{player1.code}"
-    elsif player2.name == "Computer" && player2.role == "Codebreaker"
-      player1.make_code
-      puts "#{player1.code}"
+    elsif player2.name == "computer" && player2.role == "Codebreaker"
+      player1.make_code(@color_options, player1.code)
     end
   end
 
   def setup_game
     # display the game interface
+    puts ""
+    puts "#####################################################################"
+    puts "#                              Mastermind                           #"
+    puts "#####################################################################"
+    puts ""
+  end
+
+  def display_rules
+    puts ""
+    puts "--------------------------------Rules--------------------------------"
+    puts ""
+    puts "Mastermind is a code-breaking game for two players"
+    puts "You can choose to play against another person, or against a Computer"
+    puts ""
+    puts "---------------------------------------------------------------------"
+    puts ""
   end
 
   def play_round
@@ -40,6 +55,7 @@ class Game
   def play_game
     computer_role(@player1, @player2)
     i = 0
+    player2.display_make_guess
     while i < 12
       play_round
       if game_won
@@ -52,7 +68,7 @@ class Game
   end
 
   def check_win
-    if player2.compare_array == ["Black", "Black", "Black", "Black"]
+    if player2.correct_guesses.length == 5
       @game_won = true
       puts "You cracked the code!"
     end
@@ -66,6 +82,7 @@ class Game
       # reset color options Hash to 0
       @color_options.each do |key, value|
         @color_options[key] = 0
+        player2.correct_guesses = {"present" => []}
       end
       swap_roles
       @game_won = false
@@ -88,25 +105,37 @@ class Game
   def clear_guesses
     player2.guess = []
     player2.compare_array = []
+    # player2.correct_guesses = {"present" => []}
   end
 
   # may need to break black/white into two separate functions to ensure not overlap
   def check_code(code, guess, hash)
-    # check if each position in guess matches the code
-    code.each_with_index do |v, i|
-      if guess[i] == player1.code[i]
-        player2.compare_array.push("Black")
-        # decrement the value in the colors hash by 1
-        hash[guess[i]] -= 1
-      elsif code.include?(guess[i]) && hash[guess[i]] > 0
-        player2.compare_array.push("White")
-        # decrement the value in the colors hash by 1
-        hash[code[i]] -= 1
-      else
-        player2.compare_array.push("-")
+    player2.guess.each_with_index do |val, i|
+      if player1.code.include?(player2.guess[i])
+        if player2.guess[i] == player1.code[i]
+          if player2.correct_guesses["present"].include?(val)
+            player2.correct_guesses["present"].delete_at(player2.correct_guesses["present"].index(val))
+            hash[player2.guess[i]] += 1
+            player2.correct_guesses[i] = val
+            hash[player2.guess[i]] -= 1
+          else
+            player2.correct_guesses[i] = val
+            hash[player2.guess[i]] -= 1
+          end
+        else
+          if player2.guess[i] != player1.code[i]
+            if hash[player2.guess[i]] > 0
+              player2.correct_guesses["present"].push(val)
+              hash[player2.guess[i]] -= 1
+            end
+          end
+        end
       end
     end
-    puts "Feedback for Codebreaker: #{player2.compare_array}"
+    puts "#{player2.correct_guesses}"
+  end
+
+  def give_feedback
   end
 
 end
@@ -131,7 +160,7 @@ class Codemaker < Player
   attr_accessor :role, :code
 
   def initialize
-    @name = get_codemaker_name
+    @name = get_codemaker_name.downcase
     @role = "Codemaker"
     @code = []
   end
@@ -142,59 +171,94 @@ class Codemaker < Player
       # increment the value for each color in the hash by 1 if it was selected.
       hash[array[i]] += 1
     end  
-    puts "#{hash}"
+    display_code_generated
+  end
+
+  def display_code_generated
+    puts ""
+    puts "======================================================================="
+    puts ""
+    puts "#{name.capitalize} has generated a code"
+    puts ""
+    puts "======================================================================="
+    puts ""
   end
 
   def get_codemaker_name
+    puts ""
     puts "What is the Codemaker's name?"
+    print "Name: "
     gets.chomp
   end
 
   # allow codemaker to make a custom code
-  def make_code
+  def make_code(hash, array)
+    display_make_code
     4.times do |i|
       puts "Place the position #{i} color: " 
       code.push(gets.chomp)
+      hash[array[i]] += 1
     end
   end
 
-  def give_feedback
+  def display_make_code
+    puts ""
+    puts "======================================================================="
+    puts ""
+    puts "#{name.capitalize}, it is time to make your code. "
+    puts ""
+    puts "======================================================================="
+    puts ""
   end
-
 end
 
 class Codebreaker < Player
-  attr_accessor :guess, :role, :compare_array, :computer_correct_guesses
+  attr_accessor :guess, :role, :compare_array, :correct_guesses
 
   def initialize
-    @name = get_codebreaker_name
+    @name = get_codebreaker_name.downcase
     @role = "Codebreaker"
     @guess = []
     @compare_array = []
-    @computer_correct_guesses = {}
+    @correct_guesses = {"present" => []}
   end
 
   def get_codebreaker_name
+    puts ""
     puts "What is the Codebreaker's name?"
+    print "Name: "
     gets.chomp
   end
 
   def make_guess(hash)
-    if self.name == "Computer"
-      computer_guess(hash)
+    if self.name == "computer"
+      4.times do |i|
+        if @correct_guesses.has_key?(i)
+          @guess.push(@correct_guesses[i])
+        elsif @correct_guesses["present"].length > 0
+          @guess.push(@correct_guesses["present"].sample)
+        else
+          @guess.push(hash.keys.sample)
+        end
+      end
     else
       4.times do |i|
         puts "Guess the position #{i} color: " 
-        guess.push(gets.chomp)
+        @guess.push(gets.chomp)
       end
     end
   end
 
-  def computer_guess(hash)
-    4.times do |i|
-      guess.push(hash.keys.sample)
-    end
+  def display_make_guess
+    puts ""
+    puts "======================================================================="
+    puts ""
+    puts "#{name.capitalize}, it is time to break the code. "
+    puts ""
+    puts "======================================================================="
+    puts ""
   end
+
 end
 
 Game.new
