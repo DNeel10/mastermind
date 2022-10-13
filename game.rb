@@ -1,6 +1,4 @@
 # frozen_string_literal: true
-require './codemaker.rb'
-require './codebreaker.rb'
 
 # set up the game
 class Game
@@ -156,9 +154,3 @@ class Game
     puts "#{player2.correct_guesses}"
   end
 end
-
-
-
-
-
-Game.new
