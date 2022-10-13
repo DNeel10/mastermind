@@ -40,6 +40,17 @@ class Game
     puts "Mastermind is a code-breaking game for two players"
     puts "You can choose to play against another person, or against a Computer"
     puts ""
+    puts " * Decide who is the Codemaker, and who is the Codebreaker"
+    puts " * The Codemaker will make a 4-color code from a list of 6 colors:"
+    puts "       - Red"
+    puts "       - Green"
+    puts "       - Blue"
+    puts "       - Yellow"
+    puts "       - Orange"
+    puts "       - Purple"
+    puts ""
+    puts " * The Codebreaker will have 12 rounds to guess the code"
+    puts ""
     puts "---------------------------------------------------------------------"
     puts ""
   end
@@ -80,7 +91,7 @@ class Game
     if replay == "Y"
       player1.code = []
       # reset color options Hash to 0
-      @color_options.each do |key, value|
+      @color_options.each do |key, _value|
         @color_options[key] = 0
         player2.correct_guesses = {"present" => []}
       end
@@ -109,7 +120,7 @@ class Game
   end
 
   # may need to break black/white into two separate functions to ensure not overlap
-  def check_code(code, guess, hash)
+  def check_code(hash)
     player2.guess.each_with_index do |val, i|
       if player1.code.include?(player2.guess[i])
         if player2.guess[i] == player1.code[i]
@@ -196,7 +207,7 @@ class Codemaker < Player
     display_make_code
     4.times do |i|
       puts "Place the position #{i} color: " 
-      code.push(gets.chomp)
+      code.push(gets.chomp.downcase)
       hash[array[i]] += 1
     end
   end
@@ -235,7 +246,7 @@ class Codebreaker < Player
       4.times do |i|
         if @correct_guesses.has_key?(i)
           @guess.push(@correct_guesses[i])
-        elsif @correct_guesses["present"].length > 0
+        elsif @correct_guesses["present"].length.positive?
           @guess.push(@correct_guesses["present"].sample)
         else
           @guess.push(hash.keys.sample)
@@ -243,22 +254,21 @@ class Codebreaker < Player
       end
     else
       4.times do |i|
-        puts "Guess the position #{i} color: " 
+        puts "Guess the position #{i} color: "
         @guess.push(gets.chomp)
       end
     end
   end
 
   def display_make_guess
-    puts ""
-    puts "======================================================================="
-    puts ""
+    puts ''
+    puts '======================================================================='
+    puts ''
     puts "#{name.capitalize}, it is time to break the code. "
-    puts ""
-    puts "======================================================================="
-    puts ""
+    puts ''
+    puts '======================================================================='
+    puts ''
   end
-
 end
 
 Game.new
