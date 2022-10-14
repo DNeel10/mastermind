@@ -53,7 +53,10 @@ class Game
     puts '       - Purple'
     puts ''
     puts ' * The Codebreaker will have 12 rounds to guess the code'
+    puts ' * An "X" will mark if you have a piece of the code exactly correct'
+    puts ' * An "O" will mark if you have a color correct, but in the wrong place'
     puts ''
+    puts '                               Good Luck!                            '
     puts '---------------------------------------------------------------------'
     puts ''
   end
@@ -108,6 +111,7 @@ class Game
     end
     swap_roles
     @game_won = false
+    clear_guesses
     play_game
   end
 
@@ -128,7 +132,6 @@ class Game
   def clear_guesses
     player2.guess = []
     player2.compare_array = []
-    # player2.correct_guesses = {"present" => []}
   end
 
   # may need to break black/white into two separate functions to ensure not overlap

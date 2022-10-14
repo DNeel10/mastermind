@@ -1,6 +1,6 @@
 # create class for player who will try and guess the code
 class Codebreaker
-  attr_accessor :name, :guess, :role, :compare_array, :correct_guesses
+  attr_accessor :name, :guess, :role, :compare_array, :correct_guesses, :color_choices
 
   def initialize
     @name = get_codebreaker_name.downcase
@@ -8,6 +8,7 @@ class Codebreaker
     @guess = []
     @compare_array = []
     @correct_guesses = { 'present' => [] }
+    @color_choices = %w[red orange blue green yellow purple]
   end
 
   def get_codebreaker_name
@@ -44,6 +45,9 @@ class Codebreaker
         @guess.push(@correct_guesses[i])
       elsif @correct_guesses['present'].length.positive?
         @guess.push(@correct_guesses['present'].sample)
+      elsif @correct_guesses.length == 4
+        @guess.push(@color_choices[-1])
+        color_choices.pop
       else
         @guess.push(hash.keys.sample)
       end
