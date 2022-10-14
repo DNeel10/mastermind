@@ -2,7 +2,7 @@
 
 # set up the game
 class Game
-  attr_accessor :name, :player1, :player2, :compare_array, :color_options, :game_won
+  attr_accessor :name, :player1, :player2, :compare_array, :color_options, :game_won, :feedback
 
   def initialize
     setup_game
@@ -14,6 +14,7 @@ class Game
 
     # hash will increment/decrement as colors are selected/guessed in the game.
     @color_options = { 'blue' => 0, 'red' => 0, 'green' => 0, 'yellow' => 0, 'orange' => 0, 'purple' => 0 }
+    @feedback = []
     play_game
   end
 
@@ -53,10 +54,8 @@ class Game
     puts '       - Purple'
     puts ''
     puts ' * The Codebreaker will have 12 rounds to guess the code'
-    puts ' * An "X" will mark if you have a piece of the code exactly correct'
-    puts ' * An "O" will mark if you have a color correct, but in the wrong place'
     puts ''
-    puts '                               Good Luck!                            '
+    puts '                              Good Luck!                             '
     puts '---------------------------------------------------------------------'
     puts ''
   end
@@ -76,7 +75,7 @@ class Game
     player2.display_make_guess
     while i < 12
       play_round
-      if game_won 
+      if game_won
         play_again
       end
       i += 1
@@ -132,28 +131,40 @@ class Game
   def clear_guesses
     player2.guess = []
     player2.compare_array = []
+    @feedback = []
+    player2.correct_guesses = { 'present' => [] }
   end
 
   # may need to break black/white into two separate functions to ensure not overlap
   def check_code(hash)
+    temphash = hash.clone
     player2.guess.each_with_index do |val, i|
       if player1.code.include?(player2.guess[i])
         if player2.guess[i] == player1.code[i]
           if player2.correct_guesses['present'].include?(val)
             player2.correct_guesses['present'].delete_at(player2.correct_guesses['present'].index(val))
-            hash[player2.guess[i]] += 1
+            temphash[player2.guess[i]] += 1
             player2.correct_guesses[i] = val
-            hash[player2.guess[i]] -= 1
+            temphash[player2.guess[i]] -= 1
           else
             player2.correct_guesses[i] = val
-            hash[player2.guess[i]] -= 1
+            temphash[player2.guess[i]] -= 1
           end
-        elsif player2.guess[i] != player1.code[i] && (hash[player2.guess[i]]).positive?
+        elsif player2.guess[i] != player1.code[i] && (temphash[player2.guess[i]]).positive?
           player2.correct_guesses['present'].push(val)
-          hash[player2.guess[i]] -= 1
+          temphash[player2.guess[i]] -= 1
         end
       end
     end
-    puts "#{player2.correct_guesses}"
+    give_feedback
+    puts "Codemaker Feedback: #{@feedback}"
   end
+
+  def give_feedback
+    exact = (player2.correct_guesses.length - 1)
+    partial = player2.correct_guesses['present'].length
+    exact.times { @feedback.push('*') }
+    partial.times { @feedback.push('-') }
+  end
+
 end
