@@ -2,7 +2,7 @@
 
 # set up the game
 class Game
-  attr_accessor :name, :player1, :player2, :compare_array, :color_options, :game_won, :feedback
+  attr_accessor :name, :player1, :player2, :compare_array, :color_options, :game_won, :feedback, :tempfeedback
 
   def initialize
     setup_game
@@ -11,11 +11,23 @@ class Game
     @player1 = Codemaker.new
     @player2 = Codebreaker.new
     @game_won = false
+    @round = 0
 
     # hash will increment/decrement as colors are selected/guessed in the game.
-    @color_options = { 'blue' => 0, 'red' => 0, 'green' => 0, 'yellow' => 0, 'orange' => 0, 'purple' => 0 }
-    @feedback = []
-    play_game
+    @color_options = { 'b' => 0, 'r' => 0, 'g' => 0, 'y' => 0, 'o' => 0, 'p' => 0 }
+  end
+
+  def play
+    computer_role(@player1, @player2)
+    player2.display_make_guess
+    while @round < 12
+      play_round
+      play_again if game_won
+      @round += 1
+      puts "#{12 - @round} rounds left"
+    end
+    puts 'Game Over'
+    play_again
   end
 
   private
@@ -46,12 +58,12 @@ class Game
     puts ''
     puts ' * Decide who is the Codemaker, and who is the Codebreaker'
     puts ' * The Codemaker will make a 4-color code from a list of 6 colors:'
-    puts '       - Red'
-    puts '       - Green'
-    puts '       - Blue'
-    puts '       - Yellow'
-    puts '       - Orange'
-    puts '       - Purple'
+    puts '       - [R]ed'
+    puts '       - [G]reen'
+    puts '       - [B]lue'
+    puts '       - [Y]ellow'
+    puts '       - [O]range'
+    puts '       - [P]urple'
     puts ''
     puts ' * The Codebreaker will have 12 rounds to guess the code'
     puts ''
@@ -61,28 +73,12 @@ class Game
   end
 
   def play_round
-    player2.make_guess(@color_options)
-    sleep 1.5
+    player2.make_guess(@round)
+    sleep 1.2
     puts "Codebreaker Guesses: #{player2.guess}"
     check_code(color_options)
     check_win
     clear_guesses
-  end
-
-  def play_game
-    computer_role(@player1, @player2)
-    i = 0
-    player2.display_make_guess
-    while i < 12
-      play_round
-      if game_won
-        play_again
-      end
-      i += 1
-      puts "#{12 - i} rounds left"
-    end
-    puts 'Game Over'
-    play_again
   end
 
   def check_win
@@ -108,10 +104,11 @@ class Game
       @color_options[key] = 0
       player2.correct_guesses = { 'present' => [] }
     end
+    @round = 0
     swap_roles
     @game_won = false
     clear_guesses
-    play_game
+    play
   end
 
   def exit_game
@@ -131,7 +128,7 @@ class Game
   def clear_guesses
     player2.guess = []
     player2.compare_array = []
-    @feedback = []
+    player2.feedback = []
     player2.correct_guesses = { 'present' => [] }
   end
 
@@ -157,14 +154,16 @@ class Game
       end
     end
     give_feedback
-    puts "Codemaker Feedback: #{@feedback}"
+    puts "Codemaker Feedback: #{player2.feedback.join('')}"
+    puts " p1 code: #{player1.code}"
   end
 
   def give_feedback
     exact = (player2.correct_guesses.length - 1)
     partial = player2.correct_guesses['present'].length
-    exact.times { @feedback.push('*') }
-    partial.times { @feedback.push('-') }
+    exact.times { player2.feedback.push('B') }
+    partial.times { player2.feedback.push('W') }
+    player2.tempfeedback = player2.feedback.join('')
+    player2.previous_guess = player2.guess
   end
-
 end

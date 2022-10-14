@@ -1,14 +1,22 @@
 # create class for player who will try and guess the code
 class Codebreaker
-  attr_accessor :name, :guess, :role, :compare_array, :correct_guesses, :color_choices
+  attr_accessor :name, :guess, :role, :compare_array, :correct_guesses, :color_choices, :feedback, :tempfeedback, :solution_set, :previous_guess
 
   def initialize
     @name = get_codebreaker_name.downcase
     @role = 'Codebreaker'
     @guess = []
+    @previous_guess = []
     @compare_array = []
     @correct_guesses = { 'present' => [] }
-    @color_choices = %w[red orange blue green yellow purple]
+    @color_choices = %w[r o b g y p]
+    # solution set
+    @s_s = color_choices.repeated_permutation(4).map(&:join)
+    # potential guesses
+    @p_g = color_choices.repeated_permutation(4).map(&:join)
+    @guess_score = {}
+    @feedback = []
+    @tempfeedback = []
   end
 
   def get_codebreaker_name
@@ -18,9 +26,9 @@ class Codebreaker
     gets.chomp
   end
 
-  def make_guess(hash)
+  def make_guess(round)
     if name == 'computer'
-      computer_make_guess(hash)
+      computer_make_guess(round)
     else
       4.times do |i|
         puts "Guess the position #{i} color: "
@@ -39,17 +47,31 @@ class Codebreaker
     puts ''
   end
 
-  def computer_make_guess(hash)
-    4.times do |i|
-      if @correct_guesses.key?(i)
-        @guess.push(@correct_guesses[i])
-      elsif @correct_guesses['present'].length.positive?
-        @guess.push(@correct_guesses['present'].sample)
-      elsif @correct_guesses.length == 4
-        @guess.push(@color_choices[-1])
-        color_choices.pop
-      else
-        @guess.push(hash.keys.sample)
+  def computer_make_guess(round)
+    if round == 0
+      computer_first_guess
+    else
+      guessing_algorithm
+    end
+  end
+
+  def computer_first_guess
+    @guess = ['r', 'r', 'b', 'b']
+  end
+
+  def guessing_algorithm
+    if tempfeedback.length == 4
+      4.times do 
+        @guess.push(@previous_guess.sample)
+      end
+    elsif tempfeedback.length.positive?
+      num_guesses = tempfeedback.length
+      puts "num guesses: #{num_guesses}"
+      num_guesses.times do 
+        @guess.push(@previous_guess.sample)
+      end
+      (4 - num_guesses).times do
+        @guess.push(@color_choices.sample)
       end
     end
   end
