@@ -38,7 +38,7 @@ class Codemaker
   def make_code(hash, array)
     display_make_code
     4.times do |i|
-      puts "Place the position #{i} color: "
+      puts "Place the position #{i} color by typing the first letter of the color: "
       code.push(gets.chomp.downcase)
       hash[array[i]] += 1
     end

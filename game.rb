@@ -107,6 +107,7 @@ class Game
     @round = 0
     swap_roles
     @game_won = false
+    player2.color_choices = %w[r o b g y p]
     clear_guesses
     play
   end
@@ -129,7 +130,6 @@ class Game
     player2.guess = []
     player2.compare_array = []
     player2.feedback = []
-    player2.correct_guesses = { 'present' => [] }
   end
 
   # may need to break black/white into two separate functions to ensure not overlap
@@ -141,21 +141,24 @@ class Game
           if player2.correct_guesses['present'].include?(val)
             player2.correct_guesses['present'].delete_at(player2.correct_guesses['present'].index(val))
             temphash[player2.guess[i]] += 1
+            hash[player2.guess[i]] += 1
             player2.correct_guesses[i] = val
             temphash[player2.guess[i]] -= 1
+            hash[player2.guess[i]] -= 1
           else
             player2.correct_guesses[i] = val
             temphash[player2.guess[i]] -= 1
+            hash[player2.guess[i]] -= 1
           end
-        elsif player2.guess[i] != player1.code[i] && (temphash[player2.guess[i]]).positive?
+        elsif player2.guess[i] != player1.code[i] && (hash[player2.guess[i]]).positive?
           player2.correct_guesses['present'].push(val)
           temphash[player2.guess[i]] -= 1
+          hash[player2.guess[i]] -= 1
         end
       end
     end
     give_feedback
     puts "Codemaker Feedback: #{player2.feedback.join('')}"
-    puts " p1 code: #{player1.code}"
   end
 
   def give_feedback

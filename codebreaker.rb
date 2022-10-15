@@ -31,7 +31,7 @@ class Codebreaker
       computer_make_guess(round)
     else
       4.times do |i|
-        puts "Guess the position #{i} color: "
+        puts "Guess the position #{i} color by typing the first letter of the color: "
         @guess.push(gets.chomp.downcase)
       end
     end
@@ -60,18 +60,16 @@ class Codebreaker
   end
 
   def guessing_algorithm
-    if tempfeedback.length == 4
-      4.times do 
-        @guess.push(@previous_guess.sample)
-      end
-    elsif tempfeedback.length.positive?
-      num_guesses = tempfeedback.length
-      puts "num guesses: #{num_guesses}"
-      num_guesses.times do 
-        @guess.push(@previous_guess.sample)
-      end
-      (4 - num_guesses).times do
-        @guess.push(@color_choices.sample)
+    4.times do |i|
+      if @correct_guesses.key?(i)
+        @guess.push(@correct_guesses[i])
+      elsif @correct_guesses['present'].length.positive?
+        @guess.push(@correct_guesses['present'].sample)
+      elsif @correct_guesses.length == 4
+        @guess.push(@color_choices[-1])
+        color_choices.pop
+      else
+        @guess.push(color_choices.sample)
       end
     end
   end
